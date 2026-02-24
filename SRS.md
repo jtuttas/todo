@@ -72,6 +72,32 @@ Styling / UI-Konzept:
 - Dark Mode Unterstützung (optional)
 - Eigene Tailwind-Konfiguration für projektspezifische Design-Tokens
 
+### API-Response-Konvention (verbindlich)
+
+**Alle** API-Endpunkte (außer `POST /auth/login` und `POST /auth/register`) geben Antworten im folgenden Envelope-Format zurück:
+
+```json
+{
+  "message": "success",
+  "data": <Nutzdaten>
+}
+```
+
+- Das eigentliche Datenobjekt bzw. -array befindet sich **immer** in `data`, nicht auf der obersten Ebene.
+- `POST /auth/login` ist eine Ausnahme: Die Antwort enthält `token` und `user` direkt auf der obersten Ebene (`{ message, token, user }`).
+
+**Verpflichtend für die Implementierung:** Im Service-Layer muss daher stets `response.data.data` (bzw. `response.data.token` beim Login) ausgelesen werden, **nicht** `response.data`. Falsch implementierte Services führen zu Laufzeitfehlern (`TypeError: x.filter is not a function`), weil ein Objekt statt eines Arrays übergeben wird.
+
+Typ-Hilfskonstrukt, das in allen Service-Dateien verwendet werden soll:
+
+```typescript
+type ApiResponse<T> = { message: string; data: T };
+
+// Korrekte Verwendung:
+export const getTasks = () =>
+  api.get<ApiResponse<Task[]>>('/tasks').then(r => r.data.data);
+```
+
 Weitere Libraries (Name + Zweck):
 - **axios** (^1.6.x): HTTP-Client für API-Requests mit Interceptors für Token-Handling
 - **react-router-dom** (^6.x): Clientseitiges Routing und Navigation
@@ -408,6 +434,21 @@ Zustände (Loading, Empty, Error – wie werden sie angezeigt?):
 
 **Verpflichtend**: Alle API-Fehler müssen abgefangen und dem Benutzer verständlich kommuniziert werden. Bei einem 401-Fehler (Unauthorized) muss der Benutzer automatisch ausgeloggt und zur Login-Seite weitergeleitet werden. Bei anderen Fehlern (z.B. 500) sollte eine Fehlermeldung angezeigt werden, die den Benutzer informiert, dass ein Problem aufgetreten ist, und ggf. Handlungsempfehlungen gibt (z.B. "Bitte versuchen Sie es später erneut").
 
+### Screenshots in der Dokumentation:
+
+**Verpflichtend**: Sowohl `README.md` als auch `USER_GUIDE.md` müssen aktuelle Screenshots der Anwendung enthalten.
+
+**README.md** – Pflicht-Screenshots:
+- Login-Seite
+- Dashboard
+- Aufgabenliste (eigene Aufgaben)
+- Mindestens eine weitere Hauptansicht nach Wahl (z.B. Aufgabe-Detail, Team-Aufgaben)
+
+**USER_GUIDE.md** – Pflicht-Screenshots:
+- Jeder beschriebene Arbeitsschritt (Anmelden, Aufgabe anlegen, Status ändern usw.) muss mit einem passenden Screenshot illustriert werden.
+- Screenshots müssen den tatsächlichen Zustand der fertig implementierten Anwendung zeigen (keine Mockups).
+- Screenshots sind als Bilddateien im Verzeichnis `public/screenshots/` oder `docs/screenshots/` abzulegen und per relativer Markdown-Referenz einzubinden (z.B. `![Dashboard](./docs/screenshots/dashboard.png)`).
+
 ## Deployment:
 
 Die Anwendung soll als github pages automatisch via GitHub Actions deployed werden. Es soll ein Workflow erstellt werden, der bei jedem Push auf den main-Branch die Anwendung baut und auf GitHub Pages veröffentlicht.
@@ -430,6 +471,7 @@ Beschreibe, wann das Frontend als „fertig“ gilt (prüfbare Kriterien in Text
 - [ ] Anwendung baut fehlerfrei mit `npm run build`
 - [ ] Keine TypeScript-Fehler oder ESLint-Warnungen (außer dokumentierte Ausnahmen)
 - [ ] Alle API-Endpoints aus der Swagger-Dokumentation sind integriert
+- [ ] Service-Layer liest stets `response.data.data` (Envelope-Format); direktes `response.data` ist nur beim Login-Endpoint erlaubt
 - [ ] Token-Handling ist implementiert (Speicherung, Auto-Logout bei 401)
 - [ ] Environment-Variablen für API-URL konfiguriert
 
@@ -449,10 +491,19 @@ Beschreibe, wann das Frontend als „fertig“ gilt (prüfbare Kriterien in Text
 - [ ] README.md mit Installationsanleitung ist vorhanden
 - [ ] Environment-Setup ist dokumentiert
 - [ ] Verfügbare npm-Scripts sind beschrieben
+- [ ] README.md enthält mindestens einen Screenshot je Hauptansicht (Dashboard, Aufgabenliste, Login)
+- [ ] USER_GUIDE.md enthält für jeden beschriebenen Arbeitsschritt einen passenden Screenshot
 
 ---
 
 # Anhang A – Swagger/OpenAPI (verbindlicher API-Vertrag)
+
+> **⚠ Achtung – Abweichung zwischen Swagger-Spec und tatsächlichem API-Verhalten:**
+> Die nachfolgende Swagger-Spezifikation beschreibt für viele GET-Endpunkte ein reines Array als Rückgabewert (z.B. `"type": "array"`). Das tatsächliche Backend gibt jedoch **immer** einen Wrapper zurück:
+> ```json
+> { "message": "success", "data": [...] }
+> ```
+> Der Swagger-Spec gilt nur für die **Datenstruktur der Nutzdaten** (d.h. den Inhalt von `data`). Beim Zugriff im Service-Layer muss stets `response.data.data` verwendet werden. Siehe Abschnitt 2 „API-Response-Konvention" für Details und Pflicht-Typdeklaration.
 
 Base-URL(s) aus Swagger: https://lf9server.onrender.com/
 
