@@ -8,7 +8,7 @@ Lese zunächst immer die Datei ./PRD.md, um den Produktanforderungen zu verstehe
 
 Lese die Datei ./SRS.md, um die technischen Anforderungen und Validierungsregeln für das Frontend zu verstehen.
 
-Aktualisiere stets die README.md Datei an ! 
+Aktualisiere stets die README.md Datei ! 
 
 Protokolliere alle Änderungen, die du vornimmst in der Datei ./CHANGELOG.md mit Datum und einer kurzen Beschreibung der Änderungen unter der Sektion "Unreleased".
 
