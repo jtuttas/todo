@@ -23,8 +23,11 @@ function ProtectedLayout() {
 }
 
 export default function App() {
+  const configuredBase = import.meta.env.BASE_URL.replace(/\/$/, '');
+  const basename = configuredBase && window.location.pathname.startsWith(configuredBase) ? configuredBase : undefined;
+
   return (
-    <BrowserRouter basename="/todo">
+    <BrowserRouter basename={basename}>
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
