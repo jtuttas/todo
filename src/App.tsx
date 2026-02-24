@@ -23,8 +23,8 @@ function ProtectedLayout() {
 }
 
 export default function App() {
-  const configuredBase = import.meta.env.BASE_URL.replace(/\/$/, '');
-  const basename = configuredBase && window.location.pathname.startsWith(configuredBase) ? configuredBase : undefined;
+  const configuredBase = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '');
+  const basename = configuredBase === '' ? undefined : (window.location.pathname.startsWith(configuredBase) ? configuredBase : undefined);
 
   return (
     <BrowserRouter basename={basename}>
